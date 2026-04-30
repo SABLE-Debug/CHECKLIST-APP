@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lists · AKHARA">
+<meta name="theme-color" content="#050505">
+<title>Lists by AKHARA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-bright: #e8c96a;
+  --gold-dim: rgba(201,168,76,0.12);
+  --gold-mid: rgba(201,168,76,0.35);
+  --gold-glow: rgba(201,168,76,0.08);
+  --black: #050505;
+  --surface: rgba(12,12,12,0.82);
+  --surface2: rgba(17,17,17,0.92);
+  --surface3: rgba(24,24,24,0.9);
+  --surface4: #202020;
+  --white: #f0ebe0;
+  --white-dim: rgba(240,235,224,0.45);
+  --white-faint: rgba(240,235,224,0.06);
+  --white-ghost: rgba(240,235,224,0.03);
+  --border: rgba(201,168,76,0.15);
+  --border-bright: rgba(201,168,76,0.4);
+  --red: #c0392b;
+  --nav-h: 68px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(–black);color:var(–white);font-family:‘DM Mono’,monospace;overflow:hidden;-webkit-font-smoothing:antialiased;}
+
+/* ── BACKGROUND ── */
+#bg-canvas{
+position:fixed;inset:0;z-index:0;pointer-events:none;
+width:100%;height:100%;
+}
+#app{position:relative;z-index:1;}
+
+/* radial vignette — handled by canvas */
+
+/* ── SPLASH ── */
+#splash{
+position:fixed;inset:0;background:var(–black);z-index:9999;
+display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+transition:opacity 0.5s ease, transform 0.5s ease;
+}
+#splash.hide{opacity:0;transform:scale(1.04);pointer-events:none;}
+.splash-mark{width:72px;height:78px;opacity:0;animation:splashDraw 1s ease 0.2s forwards;}
+.splash-word{font-family:‘Cormorant Garamond’,serif;font-size:28px;font-weight:500;letter-spacing:0.25em;color:var(–white);opacity:0;animation:splashFade 0.6s ease 0.9s forwards;}
+.splash-sub{font-size:8px;letter-spacing:0.3em;color:var(–gold);opacity:0;animation:splashFade 0.6s ease 1.1s forwards;}
+@keyframes splashDraw{from{opacity:0;transform:scale(0.85) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes splashFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── APP ── */
+#app{
+height:100dvh;display:flex;flex-direction:column;
+max-width:480px;margin:0 auto;position:relative;overflow:hidden;
+}
+
+/* ── HEADER ── */
+header{
+padding:calc(env(safe-area-inset-top,0px) + 16px) 22px 0;
+flex-shrink:0;
+}
+.header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.logo-group{display:flex;align-items:center;gap:10px;}
+.meridian-sm{width:24px;height:26px;}
+.wordmark{font-family:‘Cormorant Garamond’,serif;font-size:20px;font-weight:500;letter-spacing:0.2em;color:var(–white);}
+.wordmark em{color:var(–gold);font-style:normal;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.date-block{text-align:right;}
+.date-day{font-size:9px;letter-spacing:0.15em;color:var(–gold);line-height:1.4;}
+.date-full{font-size:8px;letter-spacing:0.1em;color:var(–white-dim);}
+.commander-btn{background:none;border:1px solid var(–border);border-radius:3px;padding:5px 8px;font-family:‘DM Mono’,monospace;font-size:8px;letter-spacing:0.15em;color:var(–white-dim);cursor:pointer;transition:all 0.2s;}
+.commander-btn.active{border-color:var(–gold);color:var(–gold);}
+
+/* ── INTENTION ── */
+.intention-wrap{margin:0 22px 10px;position:relative;}
+.intention-label{font-size:8px;letter-spacing:0.2em;color:var(–gold);opacity:0.6;margin-bottom:4px;}
+.intention-input{
+width:100%;background:none;border:none;border-bottom:1px solid var(–border);
+font-family:‘Cormorant Garamond’,serif;font-size:15px;font-style:italic;font-weight:300;
+color:var(–white);letter-spacing:0.03em;padding:4px 0 6px;outline:none;
+transition:border-color 0.2s;
+}
+.intention-input:focus{border-bottom-color:var(–gold-mid);}
+.intention-input::placeholder{color:var(–white-dim);opacity:0.35;}
+
+/* ── GLOBAL PROGRESS ── */
+.global-progress{padding:0 22px 10px;flex-shrink:0;}
+.gp-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.gp-label{font-size:8px;letter-spacing:0.2em;color:var(–white-dim);}
+.gp-count{font-size:10px;color:var(–gold);letter-spacing:0.05em;}
+.gp-track{height:1px;background:var(–surface4);position:relative;}
+.gp-fill{height:100%;background:linear-gradient(90deg,var(–gold) 0%,var(–gold-bright) 100%);transition:width 0.6s cubic-bezier(0.34,1.4,0.64,1);width:0%;}
+
+/* ── DIVIDER ── */
+.hdr-divider{height:1px;background:linear-gradient(90deg,var(–gold) 0%,transparent 70%);margin:0 22px;opacity:0.2;flex-shrink:0;}
+
+/* ── SCROLL AREA ── */
+.scroll-area{flex:1;overflow-y:auto;padding:14px 22px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.scroll-area::-webkit-scrollbar{display:none;}
+
+/* ── LIST CARD ── */
+.list-card{
+background:var(–surface);border:1px solid var(–border);border-radius:6px;
+margin-bottom:10px;overflow:hidden;transition:border-color 0.3s,box-shadow 0.3s;
+position:relative;
+backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.list-card.expanded{border-color:var(–border-bright);}
+.list-card.complete{border-color:var(–gold);box-shadow:0 0 18px rgba(201,168,76,0.1);}
+.list-card.locked{opacity:0.7;}
+
+/* gold wash fill */
+.list-card::before{
+content:’’;position:absolute;inset:0;
+background:linear-gradient(180deg,var(–gold-glow) 0%,transparent 100%);
+opacity:0;transition:opacity 0.8s ease;pointer-events:none;border-radius:6px;
+}
+.list-card.complete::before{opacity:1;}
+
+/* ash badge */
+.ash-badge{
+position:absolute;top:10px;right:10px;font-size:11px;opacity:0.35;
+pointer-events:none;z-index:2;
+}
+
+.list-header{display:flex;align-items:center;padding:13px 14px;cursor:pointer;user-select:none;gap:10px;}
+.list-icon{font-size:15px;width:22px;text-align:center;flex-shrink:0;}
+.list-title-group{flex:1;min-width:0;}
+.list-title{
+font-family:‘Cormorant Garamond’,serif;font-size:16px;font-weight:500;
+letter-spacing:0.04em;color:var(–white);line-height:1.2;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.list-meta{font-size:8px;letter-spacing:0.12em;color:var(–white-dim);margin-top:2px;}
+.list-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.list-fraction{font-size:10px;color:var(–gold);letter-spacing:0.05em;}
+.lock-icon{font-size:11px;opacity:0.5;}
+
+/* progress ring */
+.ring-wrap{width:28px;height:28px;flex-shrink:0;}
+.ring-bg{fill:none;stroke:var(–surface4);stroke-width:2;}
+.ring-fg{fill:none;stroke:var(–gold);stroke-width:2;stroke-linecap:round;
+transition:stroke-dashoffset 0.5s cubic-bezier(0.34,1.2,0.64,1);
+transform:rotate(-90deg);transform-origin:50% 50%;
+}
+
+.chevron{width:12px;height:12px;opacity:0.3;transition:transform 0.25s ease,opacity 0.2s;}
+.list-card.expanded .chevron{transform:rotate(90deg);opacity:0.7;}
+
+/* ── TASK AREA ── */
+.task-area{border-top:1px solid rgba(201,168,76,0.08);display:none;}
+.list-card.expanded .task-area{display:block;}
+
+.task-item{
+display:flex;align-items:center;padding:11px 14px;gap:12px;
+border-bottom:1px solid var(–white-ghost);cursor:pointer;user-select:none;
+transition:background 0.15s;position:relative;
+}
+.task-item:last-of-type{border-bottom:none;}
+.task-item:active{background:var(–white-faint);}
+.task-item.maxed .task-text{opacity:0.4;text-decoration:line-through;text-decoration-color:rgba(201,168,76,0.25);}
+
+/* segmented progress */
+.seg-track{display:flex;gap:3px;flex-shrink:0;}
+.seg{height:14px;width:10px;border-radius:1px;background:var(–surface4);transition:background 0.2s,transform 0.15s;}
+.seg.filled{background:var(–gold);}
+.seg.just-filled{animation:segPop 0.25s ease;}
+@keyframes segPop{0%{transform:scaleY(0.6)}60%{transform:scaleY(1.15)}100%{transform:scaleY(1)}}
+
+/* flip number */
+.flip-count{
+font-size:10px;color:var(–gold);letter-spacing:0.05em;flex-shrink:0;
+min-width:28px;text-align:center;
+transition:transform 0.15s ease,opacity 0.15s;
+}
+.flip-count.flipping{transform:translateY(-4px) rotateX(40deg);opacity:0;}
+
+.task-text{font-size:12px;line-height:1.5;color:var(–white);letter-spacing:0.01em;flex:1;min-width:0;}
+
+.task-actions{display:flex;gap:6px;flex-shrink:0;}
+.task-btn{background:none;border:none;font-size:10px;color:var(–white-dim);cursor:pointer;padding:2px 4px;opacity:0.4;transition:opacity 0.2s;font-family:‘DM Mono’,monospace;}
+.task-btn:active{opacity:1;}
+
+/* ── ADD TASK ROW ── */
+.add-row{display:flex;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid rgba(201,168,76,0.08);}
+.add-input{flex:1;background:none;border:none;font-family:‘DM Mono’,monospace;font-size:11px;color:var(–white);outline:none;letter-spacing:0.02em;}
+.add-input::placeholder{color:var(–white-dim);opacity:0.3;}
+.add-max-input{width:28px;background:var(–surface3);border:1px solid var(–border);border-radius:2px;font-family:‘DM Mono’,monospace;font-size:10px;color:var(–gold);text-align:center;outline:none;padding:3px 0;}
+.add-max-label{font-size:8px;color:var(–white-dim);letter-spacing:0.1em;}
+.add-confirm{background:none;border:none;color:var(–gold);font-size:16px;cursor:pointer;padding:0 2px;opacity:0.7;transition:opacity 0.2s;}
+.add-confirm:active{opacity:1;}
+
+/* ── CARD FOOTER ── */
+.card-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid rgba(201,168,76,0.08);}
+.footer-actions{display:flex;gap:8px;}
+.footer-btn{background:none;border:1px solid var(–border);border-radius:3px;padding:5px 10px;font-family:‘DM Mono’,monospace;font-size:8px;letter-spacing:0.15em;color:var(–white-dim);cursor:pointer;transition:all 0.2s;}
+.footer-btn:active{background:var(–white-faint);}
+.footer-btn.burn-btn{border-color:rgba(201,168,76,0.5);color:var(–gold);animation:burnPulse 2s ease infinite;}
+.footer-btn.lock-btn.locked{color:var(–gold);border-color:var(–border-bright);}
+@keyframes burnPulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 8px rgba(201,168,76,0.25)}}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:60px 24px;}
+.empty-state p{font-family:‘Cormorant Garamond’,serif;font-size:18px;font-style:italic;font-weight:300;color:var(–white-dim);letter-spacing:0.05em;line-height:1.7;}
+
+/* ── COMMANDER MODE ── */
+.commander-card{
+display:flex;align-items:center;padding:12px 14px;
+background:var(–surface);border:1px solid var(–border);border-radius:4px;
+margin-bottom:8px;gap:12px;cursor:pointer;
+}
+.cmd-icon{font-size:14px;width:20px;text-align:center;}
+.cmd-title{font-family:‘Cormorant Garamond’,serif;font-size:15px;font-weight:400;letter-spacing:0.04em;flex:1;}
+.cmd-frac{font-size:10px;color:var(–gold);}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+flex-shrink:0;
+height:calc(var(–nav-h) + env(safe-area-inset-bottom,0px));
+background:rgba(12,12,12,0.88);
+border-top:1px solid var(–border);
+display:flex;align-items:flex-start;padding-top:10px;
+padding-bottom:env(safe-area-inset-bottom,0px);
+backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+.nav-btn{
+flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+background:none;border:none;cursor:pointer;padding:0;
+}
+.nav-icon{font-size:16px;line-height:1;transition:transform 0.2s;}
+.nav-label{font-size:7px;letter-spacing:0.18em;color:var(–white-dim);transition:color 0.2s;}
+.nav-btn.active .nav-label{color:var(–gold);}
+.nav-btn.active .nav-icon{transform:scale(1.1);}
+.nav-fab{
+width:44px;height:44px;border-radius:50%;
+background:var(–gold);border:none;cursor:pointer;
+display:flex;align-items:center;justify-content:center;
+box-shadow:0 0 20px rgba(201,168,76,0.3);
+transition:transform 0.2s,box-shadow 0.2s;
+margin-top:-18px;
+flex-shrink:0;
+}
+.nav-fab:active{transform:scale(0.93);box-shadow:0 0 10px rgba(201,168,76,0.2);}
+.nav-fab svg{width:16px;height:16px;}
+
+/* ── PANELS ── */
+.panel{display:none;flex:1;overflow-y:auto;padding:14px 22px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.panel::-webkit-scrollbar{display:none;}
+.panel.active{display:block;}
+
+/* ── TEMPLATES PANEL ── */
+.section-label{font-size:8px;letter-spacing:0.25em;color:var(–gold);margin-bottom:10px;margin-top:4px;}
+.template-card{
+background:var(–surface);border:1px solid var(–border);border-radius:4px;
+padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;
+transition:border-color 0.2s,background 0.2s;
+}
+.template-card:active{background:var(–surface3);}
+.tmpl-icon{font-size:16px;width:24px;text-align:center;flex-shrink:0;}
+.tmpl-info{flex:1;}
+.tmpl-title{font-family:‘Cormorant Garamond’,serif;font-size:15px;font-weight:500;letter-spacing:0.04em;}
+.tmpl-count{font-size:8px;letter-spacing:0.12em;color:var(–white-dim);margin-top:2px;}
+.tmpl-use{font-size:8px;letter-spacing:0.15em;color:var(–gold);padding:6px 10px;border:1px solid var(–border);border-radius:3px;}
+.saved-tmpl-badge{font-size:7px;letter-spacing:0.1em;color:var(–gold);border:1px solid var(–border);border-radius:2px;padding:2px 5px;margin-top:3px;display:inline-block;}
+
+/* ── COMPLETED PANEL ── */
+.done-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(–white-ghost);}
+.done-dot{width:4px;height:4px;border-radius:50%;background:var(–gold);opacity:0.4;flex-shrink:0;}
+.done-text{font-size:12px;color:var(–white-dim);text-decoration:line-through;text-decoration-color:rgba(201,168,76,0.2);flex:1;opacity:0.5;}
+.done-list{font-size:8px;color:var(–gold);opacity:0.4;letter-spacing:0.1em;flex-shrink:0;}
+
+/* ── MODALS ── */
+.overlay{
+position:fixed;inset:0;background:rgba(5,5,5,0.88);
+backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+z-index:200;display:flex;align-items:flex-end;
+opacity:0;pointer-events:none;transition:opacity 0.25s;
+}
+.overlay.open{opacity:1;pointer-events:all;}
+.sheet{
+width:100%;max-width:480px;margin:0 auto;
+background:var(–surface2);border:1px solid var(–border);border-bottom:none;
+border-radius:10px 10px 0 0;
+padding:24px 22px calc(20px + env(safe-area-inset-bottom,0px));
+transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.34,1.15,0.64,1);
+}
+.overlay.open .sheet{transform:translateY(0);}
+.sheet-title{font-family:‘Cormorant Garamond’,serif;font-size:20px;font-weight:500;letter-spacing:0.06em;margin-bottom:18px;}
+.field-label{font-size:8px;letter-spacing:0.2em;color:var(–white-dim);margin-bottom:6px;}
+.field-input{
+width:100%;background:var(–surface3);border:1px solid var(–border);border-radius:3px;
+padding:11px 13px;font-family:‘DM Mono’,monospace;font-size:12px;color:var(–white);
+outline:none;letter-spacing:0.02em;margin-bottom:14px;
+}
+.field-input:focus{border-color:var(–border-bright);}
+.field-input::placeholder{color:var(–white-dim);opacity:0.3;}
+.emoji-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;}
+.emoji-opt{
+width:36px;height:36px;background:var(–surface3);border:1px solid var(–border);
+border-radius:4px;display:flex;align-items:center;justify-content:center;
+font-size:15px;cursor:pointer;transition:all 0.15s;user-select:none;
+}
+.emoji-opt.sel{border-color:var(–gold);background:var(–gold-dim);}
+.row-btns{display:flex;gap:10px;}
+.btn-cancel{flex:1;padding:12px;background:none;border:1px solid var(–border);border-radius:3px;color:var(–white-dim);font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:0.15em;cursor:pointer;}
+.btn-primary{flex:2;padding:12px;background:var(–gold);border:none;border-radius:3px;color:var(–black);font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:0.15em;font-weight:500;cursor:pointer;transition:opacity 0.2s;}
+.btn-primary:active{opacity:0.85;}
+.btn-danger{flex:1;padding:12px;background:none;border:1px solid rgba(192,57,43,0.4);border-radius:3px;color:rgba(192,57,43,0.8);font-family:‘DM Mono’,monospace;font-size:9px;letter-spacing:0.15em;cursor:pointer;}
+
+/* ── BURN ANIMATION ── */
+.burn-overlay{
+position:fixed;inset:0;z-index:500;pointer-events:none;
+display:flex;align-items:center;justify-content:center;
+opacity:0;transition:opacity 0.3s;
+}
+.burn-overlay.active{opacity:1;}
+.burn-particles{position:absolute;inset:0;}
+.burn-particle{
+position:absolute;border-radius:50%;
+animation:burnFloat var(–dur) ease-out forwards;
+opacity:0;
+}
+@keyframes burnFloat{
+0%{opacity:0.9;transform:translateY(0) scale(1);}
+100%{opacity:0;transform:translateY(var(–ty)) translateX(var(–tx)) scale(0.2);}
+}
+.burn-text{
+font-family:‘Cormorant Garamond’,serif;font-size:22px;font-style:italic;
+color:var(–gold);letter-spacing:0.1em;opacity:0;
+animation:burnTextAnim 1.8s ease forwards;
+text-shadow:0 0 20px rgba(201,168,76,0.5);
+}
+@keyframes burnTextAnim{
+0%{opacity:0;transform:scale(0.9);}
+30%{opacity:1;transform:scale(1);}
+70%{opacity:1;}
+100%{opacity:0;transform:scale(1.05) translateY(-10px);}
+}
+
+/* ── DEBRIEF MODAL ── */
+.debrief-msg{font-family:‘Cormorant Garamond’,serif;font-size:14px;font-style:italic;color:var(–white-dim);margin-bottom:14px;line-height:1.6;}
+
+/* ── EDIT INLINE ── */
+.editing-input{
+background:none;border:none;border-bottom:1px solid var(–border-bright);
+font-family:‘Cormorant Garamond’,serif;font-size:16px;font-weight:500;
+letter-spacing:0.04em;color:var(–white);outline:none;width:100%;padding:2px 0;
+}
+
+/* ── STREAK ── */
+.streak-badge{
+display:flex;align-items:center;gap:5px;
+font-size:9px;letter-spacing:0.12em;color:var(–gold);
+}
+.streak-num{font-size:14px;font-family:‘Cormorant Garamond’,serif;font-weight:500;}
+
+/* animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.list-card,.template-card{animation:fadeUp 0.25s ease both;}
+</style>
+
+</head>
+<body>
+
+<!-- BACKGROUND -->
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- SPLASH -->
+
+<div id="splash">
+  <svg class="splash-mark" viewBox="0 0 512 560" fill="none">
+    <circle cx="256" cy="272" r="168" stroke="#C9A84C" stroke-width="1.6"/>
+    <circle cx="256" cy="272" r="108" stroke="#C9A84C" stroke-width="1.2"/>
+    <line x1="256" y1="88" x2="256" y2="480" stroke="#C9A84C" stroke-width="1.4"/>
+    <line x1="64" y1="272" x2="448" y2="272" stroke="#C9A84C" stroke-width="1.2"/>
+    <line x1="196" y1="210" x2="316" y2="210" stroke="#C9A84C" stroke-width="1" opacity="0.8"/>
+    <circle cx="256" cy="96" r="9" fill="#C9A84C"/>
+  </svg>
+  <div class="splash-word">AKHARA</div>
+  <div class="splash-sub">LISTS</div>
+</div>
+
+<!-- BURN OVERLAY -->
+
+<div class="burn-overlay" id="burnOverlay">
+  <canvas class="burn-particles" id="burnCanvas"></canvas>
+  <div class="burn-text" id="burnText">Burned.</div>
+</div>
+
+<!-- APP -->
+
+<div id="app">
+
+  <!-- HEADER -->
+
+  <header>
+    <div class="header-row">
+      <div class="logo-group">
+        <svg class="meridian-sm" viewBox="0 0 512 560" fill="none">
+          <circle cx="256" cy="272" r="168" stroke="#C9A84C" stroke-width="1.6"/>
+          <circle cx="256" cy="272" r="108" stroke="#C9A84C" stroke-width="1.2"/>
+          <line x1="256" y1="88" x2="256" y2="480" stroke="#C9A84C" stroke-width="1.4"/>
+          <line x1="64" y1="272" x2="448" y2="272" stroke="#C9A84C" stroke-width="1.2"/>
+          <line x1="196" y1="210" x2="316" y2="210" stroke="#C9A84C" stroke-width="1" opacity="0.8"/>
+          <circle cx="256" cy="96" r="9" fill="#C9A84C"/>
+        </svg>
+        <div class="wordmark">AKH<em>A</em>RA</div>
+      </div>
+      <div class="header-right">
+        <div class="date-block">
+          <div class="date-day" id="dateLine"></div>
+          <div class="date-full" id="dateFullLine"></div>
+        </div>
+        <div class="streak-badge" title="Lists fully completed">
+          <span>🔥</span>
+          <span class="streak-num" id="streakNum">0</span>
+        </div>
+        <button class="commander-btn" id="cmdBtn" onclick="toggleCommander()">CMD</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- INTENTION -->
+
+  <div class="intention-wrap">
+    <div class="intention-label">TODAY'S INTENTION</div>
+    <input class="intention-input" id="intentionInput" placeholder="Set your direction for today…" maxlength="80">
+  </div>
+
+  <!-- GLOBAL PROGRESS -->
+
+  <div class="global-progress">
+    <div class="gp-meta">
+      <span class="gp-label">OVERALL PROGRESS</span>
+      <span class="gp-count" id="gpCount">0 / 0</span>
+    </div>
+    <div class="gp-track"><div class="gp-fill" id="gpFill"></div></div>
+  </div>
+
+  <div class="hdr-divider"></div>
+
+  <!-- PANELS -->
+
+  <!-- Lists -->
+
+  <div class="panel active" id="panelLists">
+    <div id="listsContainer"></div>
+  </div>
+
+  <!-- Completed -->
+
+  <div class="panel" id="panelDone">
+    <div id="doneContainer"></div>
+  </div>
+
+  <!-- Templates -->
+
+  <div class="panel" id="panelTemplates">
+    <div class="section-label">BUILT-IN</div>
+    <div id="builtinTemplates"></div>
+    <div class="section-label" style="margin-top:16px;">SAVED FROM YOUR LISTS</div>
+    <div id="savedTemplates"></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="navLists" onclick="switchNav('lists')">
+      <span class="nav-icon">◈</span>
+      <span class="nav-label">LISTS</span>
+    </button>
+    <button class="nav-btn" id="navDone" onclick="switchNav('done')">
+      <span class="nav-icon">✓</span>
+      <span class="nav-label">DONE</span>
+    </button>
+    <button class="nav-fab" onclick="openNewListModal()" aria-label="New list">
+      <svg viewBox="0 0 16 16" fill="none"><line x1="8" y1="2" x2="8" y2="14" stroke="#050505" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="8" x2="14" y2="8" stroke="#050505" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <button class="nav-btn" id="navTemplates" onclick="switchNav('templates')">
+      <span class="nav-icon">⬡</span>
+      <span class="nav-label">TEMPLATES</span>
+    </button>
+    <button class="nav-btn" id="navSettings" onclick="switchNav('settings')">
+      <span class="nav-icon">⊕</span>
+      <span class="nav-label">RESET</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- NEW LIST MODAL -->
+
+<div class="overlay" id="newListOverlay" onclick="overlayClick(event,'newListOverlay')">
+  <div class="sheet">
+    <div class="sheet-title">New List</div>
+    <div class="field-label">NAME</div>
+    <input class="field-input" id="nlName" placeholder="e.g. Trading Checklist" maxlength="40">
+    <div class="field-label">ICON</div>
+    <div class="emoji-row" id="nlEmojiRow"></div>
+    <div class="row-btns">
+      <button class="btn-cancel" onclick="closeOverlay('newListOverlay')">CANCEL</button>
+      <button class="btn-primary" onclick="createList()">CREATE LIST</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT LIST MODAL -->
+
+<div class="overlay" id="editListOverlay" onclick="overlayClick(event,'editListOverlay')">
+  <div class="sheet">
+    <div class="sheet-title">Edit List</div>
+    <div class="field-label">NAME</div>
+    <input class="field-input" id="elName" placeholder="List name" maxlength="40">
+    <div class="field-label">ICON</div>
+    <div class="emoji-row" id="elEmojiRow"></div>
+    <div class="row-btns">
+      <button class="btn-danger" onclick="deleteListConfirm()">DELETE</button>
+      <button class="btn-primary" onclick="saveEditList()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT TASK MODAL -->
+
+<div class="overlay" id="editTaskOverlay" onclick="overlayClick(event,'editTaskOverlay')">
+  <div class="sheet">
+    <div class="sheet-title">Edit Item</div>
+    <div class="field-label">ITEM NAME</div>
+    <input class="field-input" id="etName" placeholder="Item name" maxlength="80">
+    <div class="field-label">MAX CHECKS</div>
+    <input class="field-input" id="etMax" type="number" min="1" max="20" placeholder="1">
+    <div class="row-btns">
+      <button class="btn-danger" onclick="deleteTaskConfirm()">DELETE</button>
+      <button class="btn-primary" onclick="saveEditTask()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE TEMPLATE MODAL -->
+
+<div class="overlay" id="saveTmplOverlay" onclick="overlayClick(event,'saveTmplOverlay')">
+  <div class="sheet">
+    <div class="sheet-title">Save as Template</div>
+    <div class="debrief-msg">Save this list's structure as a reusable template. Items will be saved with their max checks reset to 0.</div>
+    <div class="field-label">TEMPLATE NAME</div>
+    <input class="field-input" id="stName" placeholder="Template name" maxlength="40">
+    <div class="row-btns">
+      <button class="btn-cancel" onclick="closeOverlay('saveTmplOverlay')">CANCEL</button>
+      <button class="btn-primary" onclick="confirmSaveTemplate()">SAVE TEMPLATE</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEBRIEF MODAL -->
+
+<div class="overlay" id="debriefOverlay" onclick="overlayClick(event,'debriefOverlay')">
+  <div class="sheet">
+    <div class="sheet-title">End of Day</div>
+    <div class="debrief-msg">What didn't get done?</div>
+    <textarea class="field-input" id="debriefInput" style="resize:none;height:80px;line-height:1.6;" placeholder="Optional reflection…" maxlength="300"></textarea>
+    <div class="row-btns">
+      <button class="btn-cancel" onclick="closeOverlay('debriefOverlay')">SKIP</button>
+      <button class="btn-primary" onclick="saveDebrief()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════
+// STATE
+// ═══════════════════════════════
+const SK = 'akhara_v3';
+const ICONS = ['◈','⬡','✦','◐','⟁','⬢','◉','⊕','⋈','◇','⌘','⬟','△','○','□'];
+
+let S = {
+  lists: [],
+  savedTemplates: [],
+  intention: '',
+  streak: 0,
+  lastStreakDate: '',
+  debrief: []
+};
+
+let UI = {
+  activeNav: 'lists',
+  expandedList: null,
+  commander: false,
+  selectedIcon: ICONS[0],
+  editingListId: null,
+  editingTaskId: null,
+  editingTaskListId: null,
+  savingTemplateListId: null,
+  pendingBurnListId: null
+};
+
+// ═══════════════════════════════
+// BUILT-IN TEMPLATES
+// ═══════════════════════════════
+const BUILTIN_TEMPLATES = [
+  {
+    id:'tmpl_morning', icon:'◈', title:'Morning Routine',
+    tasks:[
+      {text:'Wake up & hydrate',max:1},{text:'Journal / intention',max:1},
+      {text:'Exercise',max:1},{text:'Review schedule',max:1},{text:'Cold shower',max:1}
+    ]
+  },
+  {
+    id:'tmpl_trading', icon:'⬢', title:'Trading Checklist',
+    tasks:[
+      {text:'Pre-market scan',max:1},{text:'Check VWAP levels',max:1},
+      {text:'Mark key S/R zones',max:1},{text:'Review watchlist',max:1},
+      {text:'Risk check',max:1},{text:'Journal trades',max:1}
+    ]
+  },
+  {
+    id:'tmpl_ppl', icon:'✦', title:'PPL Study Session',
+    tasks:[
+      {text:'Blue Book chapter',max:1},{text:'Bimodal read pass',max:3},
+      {text:'Flashcard review',max:1},{text:'Practice questions',max:1},
+      {text:'Cold recall test',max:1}
+    ]
+  },
+  {
+    id:'tmpl_habits', icon:'⊕', title:'Daily Habits',
+    tasks:[
+      {text:'Water',max:8},{text:'Workout',max:1},
+      {text:'Reading',max:1},{text:'No social media before noon',max:1},
+      {text:'Sleep by midnight',max:1}
+    ]
+  },
+  {
+    id:'tmpl_groceries', icon:'◇', title:'Groceries',
+    tasks:[
+      {text:'Protein',max:1},{text:'Vegetables',max:1},
+      {text:'Fruit',max:1},{text:'Grains / carbs',max:1},{text:'Snacks',max:1}
+    ]
+  },
+  {
+    id:'tmpl_akhara', icon:'⬡', title:'AKHARA Work',
+    tasks:[
+      {text:'Content queue',max:1},{text:'Email campaigns',max:1},
+      {text:'Paid ads check',max:1},{text:'Client comms',max:1},
+      {text:'SEO / pipeline',max:1},{text:'Revenue review',max:1}
+    ]
+  }
+];
+
+// ═══════════════════════════════
+// PERSISTENCE
+// ═══════════════════════════════
+function save(){localStorage.setItem(SK,JSON.stringify(S));}
+function load(){
+  try{
+    const r=localStorage.getItem(SK);
+    if(r){const d=JSON.parse(r);Object.assign(S,d);}
+    else{
+      // seed defaults
+      S.lists=[spawnFromTemplate(BUILTIN_TEMPLATES[0]),spawnFromTemplate(BUILTIN_TEMPLATES[1]),spawnFromTemplate(BUILTIN_TEMPLATES[2])];
+      save();
+    }
+  }catch(e){S.lists=[];}
+}
+function uid(){return '_'+Math.random().toString(36).slice(2,10);}
+
+// ═══════════════════════════════
+// DATE
+// ═══════════════════════════════
+function initDate(){
+  const n=new Date();
+  const DAYS=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const MONTHS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  document.getElementById('dateLine').textContent=DAYS[n.getDay()]+' '+n.getDate()+' '+MONTHS[n.getMonth()];
+  document.getElementById('dateFullLine').textContent=n.getFullYear();
+}
+
+// ═══════════════════════════════
+// PROGRESS
+// ═══════════════════════════════
+function calcProgress(){
+  let total=0,done=0;
+  S.lists.forEach(l=>{
+    l.tasks.forEach(t=>{total+=t.max;done+=t.checks;});
+  });
+  return{total,done};
+}
+function updateProgress(){
+  const{total,done}=calcProgress();
+  document.getElementById('gpCount').textContent=done+' / '+total;
+  const pct=total===0?0:(done/total)*100;
+  document.getElementById('gpFill').style.width=pct+'%';
+  document.getElementById('streakNum').textContent=S.streak;
+}
+
+// ═══════════════════════════════
+// LIST HELPERS
+// ═══════════════════════════════
+function listProgress(list){
+  let total=0,done=0;
+  list.tasks.forEach(t=>{total+=t.max;done+=t.checks;});
+  return{total,done,pct:total===0?0:(done/total)*100};
+}
+function isComplete(list){
+  if(list.tasks.length===0)return false;
+  return list.tasks.every(t=>t.checks>=t.max);
+}
+
+// ═══════════════════════════════
+// RING SVG
+// ═══════════════════════════════
+function ringHTML(pct,size=28){
+  const r=10,circ=2*Math.PI*r;
+  const offset=circ*(1-pct/100);
+  return`<svg class="ring-wrap" width="${size}" height="${size}" viewBox="0 0 28 28">
+    <circle class="ring-bg" cx="14" cy="14" r="${r}"/>
+    <circle class="ring-fg" cx="14" cy="14" r="${r}"
+      stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+  </svg>`;
+}
+
+// ═══════════════════════════════
+// RENDER LISTS
+// ═══════════════════════════════
+function renderLists(){
+  const c=document.getElementById('listsContainer');
+  if(UI.commander){
+    c.innerHTML=S.lists.length===0?emptyHTML():S.lists.map(l=>{
+      const{done,total}=listProgress(l);
+      return`<div class="commander-card" onclick="exitCommander('${l.id}')">
+        <div class="cmd-icon">${l.icon}</div>
+        <div class="cmd-title">${esc(l.title)}</div>
+        <div class="cmd-frac">${done}/${total}</div>
+        ${ringHTML(total===0?0:(done/total)*100)}
+      </div>`;
+    }).join('');
+    return;
+  }
+  if(S.lists.length===0){c.innerHTML=emptyHTML();return;}
+  c.innerHTML=S.lists.map(l=>listCardHTML(l)).join('');
+}
+
+function listCardHTML(l){
+  const{done,total,pct}=listProgress(l);
+  const complete=isComplete(l);
+  const expanded=UI.expandedList===l.id;
+  const locked=l.locked;
+  const classes=['list-card',expanded?'expanded':'',complete?'complete':'',locked?'locked':''].join(' ');
+
+  let tasksHTML='';
+  if(expanded&&!locked){
+    tasksHTML=l.tasks.map(t=>taskHTML(l.id,t)).join('');
+    tasksHTML+=`<div class="add-row">
+      <input class="add-input" id="ai-${l.id}" placeholder="add item…" maxlength="80"
+        onkeydown="handleAddKey(event,'${l.id}')">
+      <div class="add-max-label">×</div>
+      <input class="add-max-input" id="am-${l.id}" value="1" type="number" min="1" max="20">
+      <button class="add-confirm" onclick="addTask('${l.id}')">+</button>
+    </div>`;
+    // footer
+    let footerBtns=`<button class="footer-btn" onclick="openEditList('${l.id}',event)">EDIT</button>
+      <button class="footer-btn" onclick="resetList('${l.id}',event)">RESET</button>
+      <button class="footer-btn" onclick="openSaveTemplate('${l.id}',event)">TEMPLATE</button>
+      <button class="footer-btn lock-btn ${locked?'locked':''}" onclick="toggleLock('${l.id}',event)">${locked?'🔒 LOCKED':'🔓 LOCK'}</button>`;
+    if(complete){
+      footerBtns+=`<button class="footer-btn burn-btn" onclick="burnList('${l.id}',event)">🔥 BURN</button>`;
+    }
+    tasksHTML+=`<div class="card-footer"><div class="footer-actions">${footerBtns}</div></div>`;
+  }
+
+  const ashBadge=l.burned?`<div class="ash-badge" title="Burned today">🪨</div>`:'';
+
+  return`<div class="${classes}" id="card-${l.id}">
+    ${ashBadge}
+    <div class="list-header" onclick="toggleList('${l.id}')">
+      <div class="list-icon">${l.icon}</div>
+      <div class="list-title-group">
+        <div class="list-title">${esc(l.title)}</div>
+        <div class="list-meta">${done}/${total} TASKS${complete?' · COMPLETE':''}</div>
+      </div>
+      <div class="list-right">
+        <div class="list-fraction">${done}/${total}</div>
+        ${ringHTML(pct)}
+        ${locked?'<span class="lock-icon">🔒</span>':''}
+        <svg class="chevron" viewBox="0 0 12 12" fill="none">
+          <path d="M4 2l4 4-4 4" stroke="#C9A84C" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="task-area">${tasksHTML}</div>
+  </div>`;
+}
+
+function taskHTML(listId,t){
+  const maxed=t.checks>=t.max;
+  const segs=Array.from({length:t.max},(_,i)=>`<div class="seg ${i<t.checks?'filled':''}"></div>`).join('');
+  return`<div class="task-item ${maxed?'maxed':''}" id="ti-${t.id}" onclick="tapTask('${listId}','${t.id}')">
+    <div class="seg-track">${segs}</div>
+    <div class="flip-count" id="fc-${t.id}">${t.checks}/${t.max}</div>
+    <div class="task-text">${esc(t.text)}</div>
+    <div class="task-actions" onclick="event.stopPropagation()">
+      <button class="task-btn" onclick="openEditTask('${listId}','${t.id}')">✎</button>
+      <button class="task-btn" onclick="resetTask('${listId}','${t.id}')">↺</button>
+    </div>
+  </div>`;
+}
+
+function emptyHTML(){
+  return`<div class="empty-state"><p>The arena is empty.<br><em>Fill it.</em></p></div>`;
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ═══════════════════════════════
+// RENDER DONE
+// ═══════════════════════════════
+function renderDone(){
+  const c=document.getElementById('doneContainer');
+  const items=[];
+  S.lists.forEach(l=>l.tasks.filter(t=>t.checks>=t.max).forEach(t=>items.push({text:t.text,list:l.title})));
+  if(items.length===0){c.innerHTML=`<div class="empty-state"><p>Nothing burned yet.<br><em>Get to work.</em></p></div>`;return;}
+  c.innerHTML=items.map(i=>`<div class="done-item"><div class="done-dot"></div><div class="done-text">${esc(i.text)}</div><div class="done-list">${esc(i.list).toUpperCase()}</div></div>`).join('');
+}
+
+// ═══════════════════════════════
+// RENDER TEMPLATES
+// ═══════════════════════════════
+function renderTemplates(){
+  document.getElementById('builtinTemplates').innerHTML=BUILTIN_TEMPLATES.map(t=>`
+    <div class="template-card">
+      <div class="tmpl-icon">${t.icon}</div>
+      <div class="tmpl-info">
+        <div class="tmpl-title">${esc(t.title)}</div>
+        <div class="tmpl-count">${t.tasks.length} ITEMS</div>
+      </div>
+      <div class="tmpl-use" onclick="useTemplate('${t.id}','builtin')">USE</div>
+    </div>`).join('');
+
+  const saved=document.getElementById('savedTemplates');
+  if(S.savedTemplates.length===0){
+    saved.innerHTML=`<div style="font-size:10px;color:var(--white-dim);letter-spacing:0.1em;opacity:0.4;padding:8px 0;">No saved templates yet.</div>`;
+    return;
+  }
+  saved.innerHTML=S.savedTemplates.map(t=>`
+    <div class="template-card">
+      <div class="tmpl-icon">${t.icon}</div>
+      <div class="tmpl-info">
+        <div class="tmpl-title">${esc(t.title)}</div>
+        <div class="tmpl-count">${t.tasks.length} ITEMS</div>
+        <div class="saved-tmpl-badge">SAVED</div>
+      </div>
+      <div class="tmpl-use" onclick="useTemplate('${t.id}','saved')">USE</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════
+// FULL RENDER
+// ═══════════════════════════════
+function render(){
+  renderLists();
+  renderDone();
+  renderTemplates();
+  updateProgress();
+  document.getElementById('intentionInput').value=S.intention||'';
+}
+
+// ═══════════════════════════════
+// TOGGLE LIST
+// ═══════════════════════════════
+function toggleList(id){
+  UI.expandedList=UI.expandedList===id?null:id;
+  renderLists();
+}
+function exitCommander(id){
+  UI.commander=false;
+  UI.expandedList=id;
+  document.getElementById('cmdBtn').classList.remove('active');
+  renderLists();
+}
+
+// ═══════════════════════════════
+// TAP TASK (multi-check)
+// ═══════════════════════════════
+function tapTask(listId,taskId){
+  const list=S.lists.find(l=>l.id===listId);
+  if(!list||list.locked)return;
+  const task=list.tasks.find(t=>t.id===taskId);
+  if(!task)return;
+
+  // cycle: increment, if at max reset to 0
+  if(task.checks>=task.max) task.checks=0;
+  else task.checks++;
+
+  save();
+
+  // flip animation
+  const fc=document.getElementById('fc-'+taskId);
+  if(fc){
+    fc.classList.add('flipping');
+    setTimeout(()=>{
+      fc.textContent=task.checks+'/'+task.max;
+      fc.classList.remove('flipping');
+    },150);
+  }
+
+  // re-render the task item
+  const ti=document.getElementById('ti-'+taskId);
+  if(ti){
+    const maxed=task.checks>=task.max;
+    ti.className='task-item'+(maxed?' maxed':'');
+    const segs=ti.querySelector('.seg-track');
+    if(segs){
+      const segEls=segs.querySelectorAll('.seg');
+      segEls.forEach((s,i)=>{
+        const wasFilled=s.classList.contains('filled');
+        s.classList.toggle('filled',i<task.checks);
+        if(!wasFilled&&i<task.checks) s.classList.add('just-filled');
+        else s.classList.remove('just-filled');
+      });
+    }
+  }
+
+  // check list completion
+  const wasComplete=isComplete(list);
+  updateProgress();
+
+  if(wasComplete){
+    // update card border
+    const card=document.getElementById('card-'+listId);
+    if(card)card.classList.add('complete');
+    // re-render to show burn button
+    setTimeout(()=>{renderLists();},200);
+  } else {
+    const card=document.getElementById('card-'+listId);
+    if(card)card.classList.remove('complete');
+  }
+  // haptic
+  if(navigator.vibrate) navigator.vibrate(10);
+}
+
+// ═══════════════════════════════
+// ADD TASK
+// ═══════════════════════════════
+function addTask(listId){
+  const inp=document.getElementById('ai-'+listId);
+  const maxInp=document.getElementById('am-'+listId);
+  if(!inp)return;
+  const text=inp.value.trim();
+  if(!text)return;
+  const max=Math.max(1,Math.min(20,parseInt(maxInp?.value)||1));
+  const list=S.lists.find(l=>l.id===listId);
+  if(!list)return;
+  list.tasks.push({id:uid(),text,max,checks:0});
+  save();
+  UI.expandedList=listId;
+  renderLists();
+  updateProgress();
+  setTimeout(()=>{const ni=document.getElementById('ai-'+listId);if(ni){ni.focus();}},50);
+}
+function handleAddKey(e,listId){if(e.key==='Enter')addTask(listId);}
+
+// ═══════════════════════════════
+// RESET TASK
+// ═══════════════════════════════
+function resetTask(listId,taskId){
+  event.stopPropagation();
+  const list=S.lists.find(l=>l.id===listId);if(!list)return;
+  const task=list.tasks.find(t=>t.id===taskId);if(!task)return;
+  task.checks=0;save();UI.expandedList=listId;renderLists();updateProgress();
+}
+
+// ═══════════════════════════════
+// RESET LIST
+// ═══════════════════════════════
+function resetList(listId,e){
+  if(e)e.stopPropagation();
+  const list=S.lists.find(l=>l.id===listId);if(!list)return;
+  list.tasks.forEach(t=>t.checks=0);
+  list.burned=false;
+  save();UI.expandedList=listId;renderLists();updateProgress();
+}
+
+// ═══════════════════════════════
+// LOCK
+// ═══════════════════════════════
+function toggleLock(listId,e){
+  if(e)e.stopPropagation();
+  const list=S.lists.find(l=>l.id===listId);if(!list)return;
+  list.locked=!list.locked;
+  save();UI.expandedList=listId;renderLists();
+}
+
+// ═══════════════════════════════
+// BURN 🔥
+// ═══════════════════════════════
+function burnList(listId,e){
+  if(e)e.stopPropagation();
+  UI.pendingBurnListId=listId;
+  playBurn(()=>{
+    const list=S.lists.find(l=>l.id===listId);
+    if(!list)return;
+    list.tasks.forEach(t=>t.checks=0);
+    list.burned=true;
+    // update streak
+    const today=new Date().toDateString();
+    if(S.lastStreakDate!==today){S.streak++;S.lastStreakDate=today;}
+    save();
+    UI.expandedList=null;
+    renderLists();updateProgress();
+    // debrief if all lists burned/complete
+    const allDone=S.lists.every(l=>l.burned||isComplete(l));
+    if(allDone) setTimeout(()=>openOverlay('debriefOverlay'),600);
+  });
+}
+
+function playBurn(cb){
+  const overlay=document.getElementById('burnOverlay');
+  const canvas=document.getElementById('burnCanvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  overlay.classList.add('active');
+
+  // particles
+  const particles=[];
+  const colors=['#C9A84C','#e8c96a','#f5a623','#ff6b1a','#ff3d00'];
+  for(let i=0;i<60;i++){
+    particles.push({
+      x:Math.random()*canvas.width,
+      y:canvas.height*0.6+Math.random()*canvas.height*0.4,
+      vx:(Math.random()-0.5)*4,
+      vy:-(Math.random()*8+4),
+      r:Math.random()*6+2,
+      color:colors[Math.floor(Math.random()*colors.length)],
+      life:1,decay:Math.random()*0.02+0.015
+    });
+  }
+
+  let frame=0;
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.life-=p.decay;
+      if(p.life>0){
+        ctx.globalAlpha=p.life;ctx.fillStyle=p.color;
+        ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+      }
+    });
+    ctx.globalAlpha=1;
+    frame++;
+    if(frame<90) requestAnimationFrame(animate);
+    else{
+      overlay.classList.remove('active');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      if(cb)cb();
+    }
+  }
+  animate();
+}
+
+// ═══════════════════════════════
+// CREATE LIST
+// ═══════════════════════════════
+function createList(){
+  const name=document.getElementById('nlName').value.trim();
+  if(!name)return;
+  const list={id:uid(),icon:UI.selectedIcon,title:name,tasks:[],locked:false,burned:false};
+  S.lists.push(list);
+  UI.expandedList=list.id;
+  save();closeOverlay('newListOverlay');render();
+}
+
+// ═══════════════════════════════
+// EDIT LIST
+// ═══════════════════════════════
+function openEditList(listId,e){
+  if(e)e.stopPropagation();
+  const list=S.lists.find(l=>l.id===listId);if(!list)return;
+  UI.editingListId=listId;
+  UI.selectedIcon=list.icon;
+  document.getElementById('elName').value=list.title;
+  renderIconRow('elEmojiRow',UI.selectedIcon,'el');
+  openOverlay('editListOverlay');
+}
+function saveEditList(){
+  const name=document.getElementById('elName').value.trim();
+  if(!name)return;
+  const list=S.lists.find(l=>l.id===UI.editingListId);if(!list)return;
+  list.title=name;list.icon=UI.selectedIcon;
+  save();closeOverlay('editListOverlay');UI.expandedList=UI.editingListId;renderLists();
+}
+function deleteListConfirm(){
+  if(confirm('Delete this list?')){
+    S.lists=S.lists.filter(l=>l.id!==UI.editingListId);
+    save();closeOverlay('editListOverlay');UI.expandedList=null;render();
+  }
+}
+
+// ═══════════════════════════════
+// EDIT TASK
+// ═══════════════════════════════
+function openEditTask(listId,taskId){
+  event.stopPropagation();
+  const list=S.lists.find(l=>l.id===listId);if(!list)return;
+  const task=list.tasks.find(t=>t.id===taskId);if(!task)return;
+  UI.editingTaskListId=listId;UI.editingTaskId=taskId;
+  document.getElementById('etName').value=task.text;
+  document.getElementById('etMax').value=task.max;
+  openOverlay('editTaskOverlay');
+}
+function saveEditTask(){
+  const name=document.getElementById('etName').value.trim();
+  const max=Math.max(1,Math.min(20,parseInt(document.getElementById('etMax').value)||1));
+  if(!name)return;
+  const list=S.lists.find(l=>l.id===UI.editingTaskListId);if(!list)return;
+  const task=list.tasks.find(t=>t.id===UI.editingTaskId);if(!task)return;
+  task.text=name;task.max=max;if(task.checks>max)task.checks=max;
+  save();closeOverlay('editTaskOverlay');UI.expandedList=UI.editingTaskListId;renderLists();updateProgress();
+}
+function deleteTaskConfirm(){
+  const list=S.lists.find(l=>l.id===UI.editingTaskListId);if(!list)return;
+  list.tasks=list.tasks.filter(t=>t.id!==UI.editingTaskId);
+  save();closeOverlay('editTaskOverlay');UI.expandedList=UI.editingTaskListId;renderLists();updateProgress();
+}
+
+// ═══════════════════════════════
+// TEMPLATES
+// ═══════════════════════════════
+function spawnFromTemplate(tmpl){
+  return{
+    id:uid(),icon:tmpl.icon,title:tmpl.title,locked:false,burned:false,
+    tasks:tmpl.tasks.map(t=>({id:uid(),text:t.text,max:t.max,checks:0}))
+  };
+}
+function useTemplate(tmplId,type){
+  let tmpl=type==='builtin'?BUILTIN_TEMPLATES.find(t=>t.id===tmplId):S.savedTemplates.find(t=>t.id===tmplId);
+  if(!tmpl)return;
+  const list=spawnFromTemplate(tmpl);
+  S.lists.push(list);UI.expandedList=list.id;
+  save();switchNav('lists');render();
+}
+
+function openSaveTemplate(listId,e){
+  if(e)e.stopPropagation();
+  UI.savingTemplateListId=listId;
+  const list=S.lists.find(l=>l.id===listId);
+  if(list) document.getElementById('stName').value=list.title;
+  openOverlay('saveTmplOverlay');
+}
+function confirmSaveTemplate(){
+  const name=document.getElementById('stName').value.trim();if(!name)return;
+  const list=S.lists.find(l=>l.id===UI.savingTemplateListId);if(!list)return;
+  const tmpl={
+    id:uid(),icon:list.icon,title:name,
+    tasks:list.tasks.map(t=>({text:t.text,max:t.max}))
+  };
+  S.savedTemplates.push(tmpl);
+  save();closeOverlay('saveTmplOverlay');renderTemplates();
+}
+
+// ═══════════════════════════════
+// DEBRIEF
+// ═══════════════════════════════
+function saveDebrief(){
+  const text=document.getElementById('debriefInput').value.trim();
+  if(text) S.debrief.push({date:new Date().toDateString(),text});
+  save();closeOverlay('debriefOverlay');
+}
+
+// ═══════════════════════════════
+// INTENTION
+// ═══════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('intentionInput').addEventListener('input',function(){
+    S.intention=this.value;save();
+  });
+});
+
+// ═══════════════════════════════
+// COMMANDER MODE
+// ═══════════════════════════════
+function toggleCommander(){
+  UI.commander=!UI.commander;
+  document.getElementById('cmdBtn').classList.toggle('active',UI.commander);
+  renderLists();
+}
+
+// ═══════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════
+function switchNav(name){
+  UI.activeNav=name;
+  ['lists','done','templates','settings'].forEach(n=>{
+    const panel=document.getElementById('panel'+cap(n));
+    const btn=document.getElementById('nav'+cap(n));
+    if(panel) panel.classList.toggle('active',n===name);
+    if(btn) btn.classList.toggle('active',n===name);
+  });
+  if(name==='done') renderDone();
+  if(name==='templates') renderTemplates();
+  if(name==='settings') handleSettings();
+}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function handleSettings(){
+  // settings nav = reset all
+  if(confirm('Reset ALL list progress for today?')){
+    S.lists.forEach(l=>{l.tasks.forEach(t=>t.checks=0);l.burned=false;});
+    save();switchNav('lists');render();
+  } else {
+    switchNav('lists');
+  }
+}
+
+// ═══════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════
+let nlSelectedIcon=ICONS[0];
+let elSelectedIcon=ICONS[0];
+
+function renderIconRow(containerId,selected,prefix){
+  document.getElementById(containerId).innerHTML=ICONS.map(e=>`
+    <div class="emoji-opt ${e===selected?'sel':''}" onclick="selectIcon('${containerId}','${e}','${prefix}')">${e}</div>
+  `).join('');
+}
+function selectIcon(containerId,icon,prefix){
+  UI.selectedIcon=icon;
+  renderIconRow(containerId,icon,prefix);
+}
+
+function openNewListModal(){
+  UI.selectedIcon=ICONS[0];
+  document.getElementById('nlName').value='';
+  renderIconRow('nlEmojiRow',ICONS[0],'nl');
+  openOverlay('newListOverlay');
+  setTimeout(()=>document.getElementById('nlName').focus(),300);
+}
+function openOverlay(id){document.getElementById(id).classList.add('open');}
+function closeOverlay(id){document.getElementById(id).classList.remove('open');}
+function overlayClick(e,id){if(e.target===document.getElementById(id))closeOverlay(id);}
+
+// ═══════════════════════════════
+// SPLASH
+// ═══════════════════════════════
+function hideSplash(){
+  setTimeout(()=>{
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(()=>document.getElementById('splash').remove(),500);
+  },1800);
+}
+
+// ═══════════════════════════════
+// BACKGROUND ANIMATION
+// ═══════════════════════════════
+(function initBg(){
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const GOLD = 'rgba(201,168,76,';
+
+  // ── MERIDIAN INSTANCES scattered across full screen ──
+  // Each has its own position, size, rotation speed, phase
+  const meridians = [
+    // Hero — large, centered upper area, slow pulse
+    { x: 0.5,  y: 0.32, sz: 0.62, rotSpd: 0.000018,  phase: 0,         alpha: 0.10, inner: true  },
+    // Ghost large — bleeds off bottom right
+    { x: 0.82, y: 0.78, sz: 0.52, rotSpd: -0.000012, phase: 1.2,        alpha: 0.055, inner: true },
+    // Ghost — top left corner, partially clipped
+    { x: 0.08, y: 0.12, sz: 0.38, rotSpd: 0.000025,  phase: 2.4,        alpha: 0.045, inner: false },
+    // Tiny precise — mid right
+    { x: 0.88, y: 0.42, sz: 0.14, rotSpd: -0.00005,  phase: 0.8,        alpha: 0.07,  inner: true  },
+    // Tiny — lower left
+    { x: 0.12, y: 0.70, sz: 0.11, rotSpd: 0.00006,   phase: 3.6,        alpha: 0.06,  inner: true  },
+    // Very large ghost — bleeds off top, crosshair lines span width
+    { x: 0.5,  y: -0.04, sz: 0.85, rotSpd: 0.000008, phase: 1.8,        alpha: 0.028, inner: false },
+    // Medium — lower center
+    { x: 0.52, y: 0.88, sz: 0.30, rotSpd: -0.000022, phase: 0.5,        alpha: 0.04,  inner: true  },
+  ];
+
+  // ── STAR FIELD — tiny gold specks ──
+  const stars = Array.from({length: 38}, () => ({
+    x: Math.random(),
+    y: Math.random(),
+    r: Math.random() * 1.1 + 0.3,
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.0004 + Math.random() * 0.0008
+  }));
+
+  // ── GOLD VEIN LINES — thin diagonal streaks ──
+  const veins = [
+    { x1: 0.0,  y1: 0.55, x2: 0.22, y2: 0.35, alpha: 0.04 },
+    { x1: 0.78, y1: 0.18, x2: 1.0,  y2: 0.45, alpha: 0.03 },
+    { x1: 0.3,  y1: 1.0,  x2: 0.55, y2: 0.72, alpha: 0.035 },
+    { x1: 0.6,  y1: 0.0,  x2: 0.88, y2: 0.22, alpha: 0.025 },
+  ];
+
+  function drawMeridianAt(mx, my, r1, rotation, alpha, showInner){
+    const r2 = r1 * 0.644;
+    ctx.save();
+    ctx.translate(mx, my);
+    ctx.rotate(rotation);
+
+    // outer circle
+    ctx.beginPath();
+    ctx.arc(0, 0, r1, 0, Math.PI * 2);
+    ctx.strokeStyle = GOLD + alpha + ')';
+    ctx.lineWidth = Math.max(0.4, r1 * 0.003);
+    ctx.stroke();
+
+    if(showInner){
+      // inner circle
+      ctx.beginPath();
+      ctx.arc(0, 0, r2, 0, Math.PI * 2);
+      ctx.strokeStyle = GOLD + (alpha * 0.7) + ')';
+      ctx.lineWidth = Math.max(0.3, r1 * 0.002);
+      ctx.stroke();
+    }
+
+    // crosshair — extend well past outer circle to fill space
+    const ext = r1 * 1.55;
+    ctx.strokeStyle = GOLD + (alpha * 0.55) + ')';
+    ctx.lineWidth = Math.max(0.3, r1 * 0.0018);
+    ctx.beginPath(); ctx.moveTo(0, -ext); ctx.lineTo(0, ext); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-ext, 0); ctx.lineTo(ext, 0); ctx.stroke();
+
+    // upper tick
+    if(r1 > 30){
+      const tickY = -r1 * 0.68;
+      const tickW = r1 * 0.37;
+      ctx.strokeStyle = GOLD + (alpha * 0.38) + ')';
+      ctx.lineWidth = Math.max(0.2, r1 * 0.0015);
+      ctx.beginPath(); ctx.moveTo(-tickW, tickY); ctx.lineTo(tickW, tickY); ctx.stroke();
+
+      // apex dot
+      ctx.beginPath();
+      ctx.arc(0, -r1 * 1.06, Math.max(1.5, r1 * 0.024), 0, Math.PI * 2);
+      ctx.fillStyle = GOLD + alpha + ')';
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  let raf;
+  function frame(t){
+    ctx.clearRect(0, 0, W, H);
+
+    // ── FULL SCREEN BASE GRADIENT ──
+    // dark warm tone — fills entire canvas, not just center
+    const bg = ctx.createLinearGradient(0, 0, W * 0.3, H);
+    bg.addColorStop(0,   'rgba(18,12,4,1)');
+    bg.addColorStop(0.4, 'rgba(10,8,4,1)');
+    bg.addColorStop(1,   'rgba(5,5,5,1)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // ── ATMOSPHERIC GLOW ZONES ──
+    // warm gold bloom top-center
+    const bloom1 = ctx.createRadialGradient(W*0.5, 0, 0, W*0.5, 0, H*0.6);
+    bloom1.addColorStop(0,   'rgba(201,168,76,0.04)');
+    bloom1.addColorStop(0.6, 'rgba(201,168,76,0.01)');
+    bloom1.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = bloom1; ctx.fillRect(0,0,W,H);
+
+    // deep amber bloom bottom-right
+    const bloom2 = ctx.createRadialGradient(W*0.85, H*0.9, 0, W*0.85, H*0.9, H*0.55);
+    bloom2.addColorStop(0,   'rgba(180,120,30,0.035)');
+    bloom2.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = bloom2; ctx.fillRect(0,0,W,H);
+
+    // cool dark vignette edges — frame the screen
+    const vig = ctx.createRadialGradient(W*0.5, H*0.5, H*0.25, W*0.5, H*0.5, H*0.85);
+    vig.addColorStop(0, 'rgba(0,0,0,0)');
+    vig.addColorStop(1, 'rgba(0,0,0,0.55)');
+    ctx.fillStyle = vig; ctx.fillRect(0,0,W,H);
+
+    const pulse = 0.5 + 0.5 * Math.sin(t * 0.00035);
+
+    // ── VEIN LINES ──
+    veins.forEach(v => {
+      const vp = 0.5 + 0.5 * Math.sin(t * 0.0002 + v.alpha * 100);
+      ctx.beginPath();
+      ctx.moveTo(v.x1 * W, v.y1 * H);
+      ctx.lineTo(v.x2 * W, v.y2 * H);
+      ctx.strokeStyle = GOLD + (v.alpha * (0.7 + vp * 0.3)) + ')';
+      ctx.lineWidth = 0.4;
+      ctx.stroke();
+    });
+
+    // ── MERIDIAN INSTANCES ──
+    meridians.forEach((m, i) => {
+      const rot = t * m.rotSpd + m.phase;
+      const r1 = Math.min(W, H) * m.sz * 0.5;
+      const mx = m.x * W;
+      const my = m.y * H;
+      const ap = m.alpha * (0.75 + pulse * 0.25);
+      drawMeridianAt(mx, my, r1, rot, ap, m.inner);
+    });
+
+    // ── STAR FIELD ──
+    stars.forEach(s => {
+      const blink = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * s.speed + s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = GOLD + (0.18 * blink) + ')';
+      ctx.fill();
+    });
+
+    raf = requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+// ═══════════════════════════════
+// INIT
+// ═══════════════════════════════
+load();
+initDate();
+render();
+hideSplash();
+</script>
+
+</body>
+</html>
